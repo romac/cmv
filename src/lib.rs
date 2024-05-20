@@ -1,15 +1,12 @@
 use std::hash::Hash;
 
+use fxhash::{FxBuildHasher, FxHashSet};
 use rand::{Rng, RngCore};
-
-type Set<T> = fxhash::FxHashSet<T>;
-// type Set<T> = hashbrown::HashSet<T>;
-// type Set<T> = ahash::AHashSet<T>;
 
 pub struct Cmv<T> {
     capacity: usize,
     round: usize,
-    set: Set<T>,
+    set: FxHashSet<T>,
     rng: Box<dyn RngCore>,
 }
 
@@ -18,7 +15,7 @@ impl<T> Cmv<T> {
         Self {
             capacity,
             round: 0,
-            set: Set::with_capacity_and_hasher(capacity, fxhash::FxBuildHasher::default()),
+            set: FxHashSet::with_capacity_and_hasher(capacity, FxBuildHasher::default()),
             rng: Box::new(rng),
         }
     }
@@ -75,7 +72,7 @@ mod tests {
     use rand_chacha::ChaChaRng;
 
     fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
-        let distinct = words.iter().collect::<Set<_>>();
+        let distinct = words.iter().collect::<fxhash::FxHashSet<_>>();
 
         let rng = ChaChaRng::seed_from_u64(0x1234);
 
