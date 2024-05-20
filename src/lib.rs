@@ -57,7 +57,7 @@ impl<T> Cmv<T> {
 /// Return true with probablity 1/2^round
 #[inline(always)]
 fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
-    rng.gen_range(0_u128..(1_u128 << round)) == 0
+    rng.gen_bool(1.0_f64 / 2.0_f64.powi(round as i32))
 }
 
 #[cfg(test)]
