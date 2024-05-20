@@ -1,22 +1,25 @@
 use std::hash::Hash;
 
-use fxhash::FxHashSet;
 use rand::{Rng, RngCore};
+
+type Set<T> = fxhash::FxHashSet<T>;
+// type Set<T> = hashbrown::HashSet<T>;
+// type Set<T> = ahash::AHashSet<T>;
 
 pub struct Cmv<T> {
     capacity: usize,
     round: usize,
-    set: FxHashSet<T>,
+    set: Set<T>,
     rng: Box<dyn RngCore>,
 }
 
 impl<T> Cmv<T> {
-    pub fn new(capacity: usize) -> Self {
+    pub fn new(capacity: usize, rng: impl RngCore + 'static) -> Self {
         Self {
             capacity,
             round: 0,
-            set: FxHashSet::default(),
-            rng: Box::new(rand::thread_rng()),
+            set: Set::with_capacity_and_hasher(capacity, fxhash::FxBuildHasher::default()),
+            rng: Box::new(rng),
         }
     }
 
