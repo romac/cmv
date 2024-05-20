@@ -24,14 +24,17 @@ impl<T> Cmv<T> {
     where
         T: Eq + Hash,
     {
-        self.set.remove(&item);
-
         if prob_keep(&mut self.rng, self.round) {
             self.set.insert(item);
+        } else {
+            self.set.remove(&item);
         }
 
         if self.set.len() == self.capacity {
+            // Remove about halft of the elements
             self.set.retain(|_| prob_keep(&mut self.rng, 1));
+
+            // Move to next round
             self.round += 1;
         }
     }
