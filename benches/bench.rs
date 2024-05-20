@@ -3,12 +3,14 @@ use std::hash::Hash;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use cmv::Cmv;
+use rand::SeedableRng;
 
 fn run_bench<T>(words: &[T], capacity: usize) -> u128
 where
     T: Eq + Hash,
 {
-    let mut cmv = Cmv::new(capacity);
+    let rng = rand_chacha::ChaChaRng::seed_from_u64(0x1234);
+    let mut cmv = Cmv::new(capacity, rng);
     for word in words {
         cmv.insert(word);
     }
