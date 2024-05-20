@@ -64,19 +64,26 @@ fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
 mod tests {
     use super::*;
 
-    fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
-        let distinct = words.iter().collect::<FxHashSet<_>>();
+    use rand::SeedableRng;
+    use rand_chacha::ChaChaRng;
 
-        let mut cmv = Cmv::new(capacity);
+    fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
+        let distinct = words.iter().collect::<Set<_>>();
+
+        let rng = ChaChaRng::seed_from_u64(0x1234);
+
+        let mut cmv = Cmv::new(capacity, rng);
         for word in words {
             cmv.insert(word);
         }
 
         let diff = (cmv.count() as i128 - distinct.len() as i128).abs();
+        let error = (diff as f64 / distinct.len() as f64) * 100.0;
 
         println!("Exact count: {}", distinct.len());
         println!("  CMV count: {}", cmv.count());
         println!("       Diff: {}", diff);
+        println!("      Error: {:.2}%", error);
     }
 
     #[test]
@@ -100,34 +107,48 @@ mod tests {
         run(8000, &words);
     }
 
-    fn gen_ints<R: rand::Rng>(n: u64, rng: R) -> Vec<u64> {
+    fn gen_ints(n: u64) -> Vec<u64> {
         use rand::distributions::Uniform;
+        let rng = ChaChaRng::seed_from_u64(0x1234);
+
         rng.sample_iter(Uniform::new(0, n / 2))
             .take(n as usize)
             .collect()
     }
 
     #[test]
-    fn int_1k() {
-        let ints = gen_ints(1_000, rand::thread_rng());
+    fn int_1k_100() {
+        let ints = gen_ints(1_000);
         run(100, &ints);
     }
 
     #[test]
-    fn int_10k() {
-        let ints = gen_ints(10_000, rand::thread_rng());
+    fn int_10k_1k() {
+        let ints = gen_ints(10_000);
         run(1000, &ints);
     }
 
     #[test]
-    fn int_100k() {
-        let ints = gen_ints(100_000, rand::thread_rng());
+    fn int_100k_1k() {
+        let ints = gen_ints(100_000);
         run(1000, &ints);
     }
 
     #[test]
-    fn int_1m() {
-        let ints = gen_ints(1_000_000, rand::thread_rng());
+    fn int_1m_1k() {
+        let ints = gen_ints(1_000_000);
         run(1000, &ints);
+    }
+
+    #[test]
+    fn int_1m_10k() {
+        let ints = gen_ints(1_000_000);
+        run(10000, &ints);
+    }
+
+    #[test]
+    fn int_10m_10k() {
+        let ints = gen_ints(10_000_000);
+        run(10000, &ints);
     }
 }
