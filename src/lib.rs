@@ -55,7 +55,7 @@ impl<T> Cmv<T> {
     }
 }
 
-/// Return true with probablity 1/2^round
+/// Return true with probability 1/2^round
 #[cold]
 #[inline(always)]
 fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
