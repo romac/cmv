@@ -7,24 +7,22 @@ pub struct Cmv<T> {
     capacity: usize,
     round: usize,
     set: FxHashSet<T>,
-    rng: Box<dyn RngCore>,
 }
 
 impl<T> Cmv<T> {
-    pub fn new(capacity: usize, rng: impl RngCore + 'static) -> Self {
+    pub fn with_capacity(capacity: usize) -> Self {
         Self {
             capacity,
             round: 0,
             set: FxHashSet::with_capacity_and_hasher(capacity, FxBuildHasher::default()),
-            rng: Box::new(rng),
         }
     }
 
-    pub fn insert(&mut self, item: T)
+    pub fn insert(&mut self, item: T, rng: &mut dyn RngCore)
     where
         T: Eq + Hash,
     {
-        if prob_keep(&mut self.rng, self.round) {
+        if prob_keep(rng, self.round) {
             self.set.insert(item);
         } else {
             self.set.remove(&item);
@@ -32,7 +30,7 @@ impl<T> Cmv<T> {
 
         if self.set.len() == self.capacity {
             // Remove about halft of the elements
-            self.set.retain(|_| prob_keep(&mut self.rng, 1));
+            self.set.retain(|_| prob_keep(rng, 1));
 
             // Move to next round
             self.round += 1;
@@ -74,11 +72,11 @@ mod tests {
     fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
         let distinct = words.iter().collect::<fxhash::FxHashSet<_>>();
 
-        let rng = ChaChaRng::seed_from_u64(0x1234);
+        let mut rng = ChaChaRng::seed_from_u64(0x1234);
 
-        let mut cmv = Cmv::new(capacity, rng);
+        let mut cmv = Cmv::with_capacity(capacity);
         for word in words {
-            cmv.insert(word);
+            cmv.insert(word, &mut rng);
         }
 
         let diff = (cmv.count() as i128 - distinct.len() as i128).abs();

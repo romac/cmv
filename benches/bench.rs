@@ -9,10 +9,10 @@ fn run_bench<T>(words: &[T], capacity: usize) -> u128
 where
     T: Eq + Hash,
 {
-    let rng = rand_chacha::ChaChaRng::seed_from_u64(0x1234);
-    let mut cmv = Cmv::new(capacity, rng);
+    let mut rng = rand_chacha::ChaChaRng::seed_from_u64(0x1234);
+    let mut cmv = Cmv::with_capacity(capacity);
     for word in words {
-        cmv.insert(word);
+        cmv.insert(word, &mut rng);
     }
     cmv.count()
 }
