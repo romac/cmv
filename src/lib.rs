@@ -29,7 +29,7 @@ impl<T> Cmv<T> {
         }
 
         if self.set.len() == self.capacity {
-            // Remove about halft of the elements
+            // Remove about half of the elements
             self.set.retain(|_| prob_keep(rng, 1));
 
             // Move to next round
@@ -66,13 +66,13 @@ fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
 mod tests {
     use super::*;
 
+    use rand::rngs::SmallRng;
     use rand::SeedableRng;
-    use rand_chacha::ChaChaRng;
 
     fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
         let distinct = words.iter().collect::<fxhash::FxHashSet<_>>();
 
-        let mut rng = ChaChaRng::seed_from_u64(0x1234);
+        let mut rng = SmallRng::seed_from_u64(0x1234);
 
         let mut cmv = Cmv::with_capacity(capacity);
         for word in words {
@@ -111,7 +111,7 @@ mod tests {
 
     fn gen_ints(n: u64) -> Vec<u64> {
         use rand::distributions::Uniform;
-        let rng = ChaChaRng::seed_from_u64(0x1234);
+        let rng = SmallRng::seed_from_u64(0x1234);
 
         rng.sample_iter(Uniform::new(0, n / 2))
             .take(n as usize)

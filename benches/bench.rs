@@ -3,13 +3,14 @@ use std::hash::Hash;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 use cmv::Cmv;
+use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
 fn run_bench<T>(words: &[T], capacity: usize) -> u128
 where
     T: Eq + Hash,
 {
-    let mut rng = rand_chacha::ChaChaRng::seed_from_u64(0x1234);
+    let mut rng = SmallRng::seed_from_u64(0x1234);
     let mut cmv = Cmv::with_capacity(capacity);
     for word in words {
         cmv.insert(word, &mut rng);
@@ -32,7 +33,7 @@ pub fn hamlet(c: &mut Criterion) {
 pub fn ints(c: &mut Criterion) {
     use rand::SeedableRng;
 
-    let mut rng = rand_chacha::ChaChaRng::seed_from_u64(0x1234);
+    let mut rng = SmallRng::seed_from_u64(0x1234);
 
     c.bench_function("ints/10k/1k", |b| {
         let ints = gen_ints(1_000, &mut rng);
@@ -63,5 +64,5 @@ fn gen_ints<R: rand::Rng>(n: u64, rng: R) -> Vec<u64> {
         .collect()
 }
 
-criterion_group!(benches, ints);
+criterion_group!(benches, ints, hamlet);
 criterion_main!(benches);

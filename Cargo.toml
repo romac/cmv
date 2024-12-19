@@ -1,19 +1,19 @@
 [package]
-name        = "cmv"
-version     = "0.1.0"
-edition     = "2021"
-license     = "Apache-2.0"
+name = "cmv"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
 description = "Rust implementation of 'Distinct Elements in Streams: An Algorithm for the (Text) Book' by Sourav Chakraborty et al."
-repository  = "https://github.com/romac/cmv"
+repository = "https://github.com/romac/cmv"
 
 [dependencies]
-fxhash = "0.2"
-rand   = "0.8"
+fxhash = { version = "0.2" }
+rand = { version = "0.8" }
 
 [dev-dependencies]
-criterion   = "0.5"
-rand_chacha = "0.3"
+criterion = { version = "0.5" }
+rand = { version = "0.8", features = ["small_rng"] }
 
 [[bench]]
-name    = "bench"
+name = "bench"
 harness = false
