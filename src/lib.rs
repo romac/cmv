@@ -1,20 +1,32 @@
-use std::hash::Hash;
+use std::collections::HashSet;
+use std::hash::{BuildHasher, Hash};
 
-use fxhash::{FxBuildHasher, FxHashSet};
 use rand::{Rng, RngCore};
 
-pub struct Cmv<T> {
+#[cfg(feature = "fxhash")]
+type DefaultRandomState = fxhash::FxBuildHasher;
+
+#[cfg(not(feature = "fxhash"))]
+type DefaultRandomState = std::collections::hash_map::RandomState;
+
+pub struct Cmv<T, S = DefaultRandomState> {
     capacity: usize,
     round: usize,
-    set: FxHashSet<T>,
+    set: HashSet<T, S>,
 }
 
-impl<T> Cmv<T> {
-    pub fn with_capacity(capacity: usize) -> Self {
+impl<T, S> Cmv<T, S>
+where
+    S: BuildHasher,
+{
+    pub fn with_capacity(capacity: usize) -> Self
+    where
+        S: Default,
+    {
         Self {
             capacity,
             round: 0,
-            set: FxHashSet::with_capacity_and_hasher(capacity, FxBuildHasher::default()),
+            set: HashSet::<T, S>::with_capacity_and_hasher(capacity, S::default()),
         }
     }
 
@@ -59,7 +71,7 @@ impl<T> Cmv<T> {
 #[cold]
 #[inline(always)]
 fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
-    rng.gen_ratio(1, 1 << round)
+    rng.random_ratio(1, 1 << round)
 }
 
 #[cfg(test)]
@@ -74,7 +86,7 @@ mod tests {
 
         let mut rng = SmallRng::seed_from_u64(0x1234);
 
-        let mut cmv = Cmv::with_capacity(capacity);
+        let mut cmv = Cmv::<&T>::with_capacity(capacity);
         for word in words {
             cmv.insert(word, &mut rng);
         }
@@ -110,10 +122,10 @@ mod tests {
     }
 
     fn gen_ints(n: u64) -> Vec<u64> {
-        use rand::distributions::Uniform;
+        use rand::distr::Uniform;
         let rng = SmallRng::seed_from_u64(0x1234);
 
-        rng.sample_iter(Uniform::new(0, n / 2))
+        rng.sample_iter(Uniform::new(0, n / 2).unwrap())
             .take(n as usize)
             .collect()
     }

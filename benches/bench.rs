@@ -1,6 +1,7 @@
 use std::hash::Hash;
+use std::hint::black_box;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 use cmv::Cmv;
 use rand::rngs::SmallRng;
@@ -11,7 +12,7 @@ where
     T: Eq + Hash,
 {
     let mut rng = SmallRng::seed_from_u64(0x1234);
-    let mut cmv = Cmv::with_capacity(capacity);
+    let mut cmv = Cmv::<&T>::with_capacity(capacity);
     for word in words {
         cmv.insert(word, &mut rng);
     }
@@ -57,9 +58,9 @@ pub fn ints(c: &mut Criterion) {
 }
 
 fn gen_ints<R: rand::Rng>(n: u64, rng: R) -> Vec<u64> {
-    use rand::distributions::Uniform;
+    use rand::distr::Uniform;
 
-    rng.sample_iter(Uniform::new(0, n / 2))
+    rng.sample_iter(Uniform::new(0, n / 2).unwrap())
         .take(n as usize)
         .collect()
 }

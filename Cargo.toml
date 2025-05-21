@@ -6,13 +6,17 @@ license = "Apache-2.0"
 description = "Rust implementation of 'Distinct Elements in Streams: An Algorithm for the (Text) Book' by Sourav Chakraborty et al."
 repository = "https://github.com/romac/cmv"
 
+[features]
+fxhash = ["dep:fxhash"]
+
 [dependencies]
-fxhash = { version = "0.2" }
-rand = { version = "0.8" }
+rand = { version = "0.9" }
+fxhash = { version = "0.2", optional = true }
 
 [dev-dependencies]
-criterion = { version = "0.5" }
-rand = { version = "0.8", features = ["small_rng"] }
+criterion = { version = "0.6" }
+rand = { version = "0.9", features = ["small_rng"] }
+fxhash = { version = "0.2" }
 
 [[bench]]
 name = "bench"
