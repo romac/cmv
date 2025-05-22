@@ -92,10 +92,10 @@ mod tests {
     use rand::rngs::SmallRng;
     use rand::SeedableRng;
 
-    fn run<T: Eq + Hash>(capacity: usize, words: &[T]) {
+    fn run<T: Eq + Hash>(capacity: usize, words: &[T], max_error: f64) {
         let distinct = words.iter().collect::<fxhash::FxHashSet<_>>();
 
-        let mut rng = SmallRng::seed_from_u64(0x1234);
+        let mut rng = SmallRng::seed_from_u64(0x123456789);
 
         let mut cmv = Cmv::<&T>::with_capacity(capacity);
         for word in words {
@@ -103,33 +103,41 @@ mod tests {
         }
 
         let diff = (cmv.count() as i128 - distinct.len() as i128).abs();
-        let error = (diff as f64 / distinct.len() as f64) * 100.0;
+        let error = diff as f64 / distinct.len() as f64;
 
         println!("Exact count: {}", distinct.len());
         println!("  CMV count: {}", cmv.count());
         println!("       Diff: {}", diff);
-        println!("      Error: {:.2}%", error);
+        println!("      Error: {:.2}%", error * 100.0);
+
+        if error > max_error {
+            panic!(
+                "[FAILED] Error is too high: {:.2}% (max: {:.2}%)",
+                error * 100.0,
+                max_error * 100.0
+            );
+        }
     }
 
     #[test]
     fn hamlet_100() {
         let text = std::fs::read_to_string("hamlet.txt").unwrap();
         let words = text.split_whitespace().collect::<Vec<_>>();
-        run(100, &words);
+        run(100, &words, 0.2);
     }
 
     #[test]
     fn hamlet_1000() {
         let text = std::fs::read_to_string("hamlet.txt").unwrap();
         let words = text.split_whitespace().collect::<Vec<_>>();
-        run(1000, &words);
+        run(1000, &words, 0.03);
     }
 
     #[test]
     fn hamlet_8000() {
         let text = std::fs::read_to_string("hamlet.txt").unwrap();
         let words = text.split_whitespace().collect::<Vec<_>>();
-        run(8000, &words);
+        run(8000, &words, 0.00);
     }
 
     fn gen_ints(n: u64) -> Vec<u64> {
@@ -144,36 +152,36 @@ mod tests {
     #[test]
     fn int_1k_100() {
         let ints = gen_ints(1_000);
-        run(100, &ints);
+        run(100, &ints, 0.05);
     }
 
     #[test]
     fn int_10k_1k() {
         let ints = gen_ints(10_000);
-        run(1000, &ints);
+        run(1000, &ints, 0.15);
     }
 
     #[test]
     fn int_100k_1k() {
         let ints = gen_ints(100_000);
-        run(1000, &ints);
+        run(1000, &ints, 0.15);
     }
 
     #[test]
     fn int_1m_1k() {
         let ints = gen_ints(1_000_000);
-        run(1000, &ints);
+        run(1000, &ints, 0.05);
     }
 
     #[test]
     fn int_1m_10k() {
         let ints = gen_ints(1_000_000);
-        run(10000, &ints);
+        run(10000, &ints, 0.02);
     }
 
     #[test]
     fn int_10m_10k() {
         let ints = gen_ints(10_000_000);
-        run(10000, &ints);
+        run(10000, &ints, 0.01);
     }
 }
