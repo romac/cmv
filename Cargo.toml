@@ -7,6 +7,7 @@ description = "Rust implementation of 'Distinct Elements in Streams: An Algorith
 repository = "https://github.com/romac/cmv"
 
 [features]
+default = ["fxhash"]
 fxhash = ["dep:fxhash"]
 
 [dependencies]
