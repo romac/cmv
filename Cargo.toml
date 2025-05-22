@@ -10,6 +10,10 @@ repository = "https://github.com/romac/cmv"
 default = ["fxhash"]
 fxhash = ["dep:fxhash"]
 
+[profile.bench]
+lto = true
+codegen-units = 1
+
 [dependencies]
 rand = { version = "0.9" }
 fxhash = { version = "0.2", optional = true }
