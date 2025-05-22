@@ -34,7 +34,7 @@ where
     where
         T: Eq + Hash,
     {
-        if prob_keep(rng, self.round) {
+        if unlikely(prob_keep(rng, self.round)) {
             self.set.insert(item);
         } else {
             self.set.remove(&item);
@@ -42,7 +42,7 @@ where
 
         if self.set.len() == self.capacity {
             // Remove about half of the elements
-            self.set.retain(|_| prob_keep(rng, 1));
+            self.set.retain(|_| unlikely(prob_keep(rng, 1)));
 
             // Move to next round
             self.round += 1;
@@ -67,9 +67,20 @@ where
     }
 }
 
-/// Return true with probability 1/2^round
 #[cold]
-#[inline(always)]
+#[inline]
+fn cold() {}
+
+#[inline]
+fn unlikely(b: bool) -> bool {
+    if b {
+        cold()
+    }
+    b
+}
+
+/// Return true with probability 1/2^round
+#[inline]
 fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
     rng.random_ratio(1, 1 << round)
 }
