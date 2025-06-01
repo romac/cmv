@@ -1,9 +1,7 @@
 use std::hash::Hash;
-use std::hint::black_box;
-
-use criterion::{criterion_group, criterion_main, Criterion};
 
 use cmv::Cmv;
+use divan::{bench, Bencher};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
@@ -19,43 +17,16 @@ where
     cmv.count()
 }
 
-pub fn hamlet(c: &mut Criterion) {
+#[bench(args = [100, 1_000, 10_000])]
+pub fn hamlet(b: Bencher, capacity: usize) {
     let words = std::fs::read_to_string("hamlet.txt").unwrap();
-    let words = words.split_whitespace().collect::<Vec<_>>();
 
-    c.bench_function("hamlet/7806/100", |b| {
-        b.iter(|| run_bench(&words, black_box(100)))
-    });
-    c.bench_function("hamlet/7806/1k", |b| {
-        b.iter(|| run_bench(&words, black_box(1_000)))
-    });
+    b.with_inputs(|| words.split_whitespace().collect::<Vec<_>>())
+        .input_counter(|words| words.len())
+        .bench_refs(|words| run_bench(words, capacity));
 }
 
-pub fn ints(c: &mut Criterion) {
-    use rand::SeedableRng;
-
-    let mut rng = SmallRng::seed_from_u64(0x1234);
-
-    c.bench_function("ints/10k/1k", |b| {
-        let ints = gen_ints(1_000, &mut rng);
-        b.iter(|| run_bench(&ints, black_box(1_000)))
-    });
-
-    c.bench_function("ints/100k/1k", |b| {
-        let ints = gen_ints(100_000, &mut rng);
-        b.iter(|| run_bench(&ints, black_box(1_000)))
-    });
-
-    c.bench_function("ints/1m/1k", |b| {
-        let ints = gen_ints(1_000_000, &mut rng);
-        b.iter(|| run_bench(&ints, black_box(1_000)))
-    });
-
-    c.bench_function("ints/1m/10k", |b| {
-        let ints = gen_ints(1_000_000, &mut rng);
-        b.iter(|| run_bench(&ints, black_box(10_000)))
-    });
-}
+const SEED: u64 = 0x1234;
 
 fn gen_ints<R: rand::Rng>(n: u64, rng: R) -> Vec<u64> {
     use rand::distr::Uniform;
@@ -65,5 +36,18 @@ fn gen_ints<R: rand::Rng>(n: u64, rng: R) -> Vec<u64> {
         .collect()
 }
 
-criterion_group!(benches, ints, hamlet);
-criterion_main!(benches);
+#[bench(args = [(10_000, 1_000), (100_000, 1_000), (1_000_000, 1_000), (1_000_000, 10_000)])]
+pub fn ints(b: Bencher, (count, capacity): (u64, usize)) {
+    use rand::SeedableRng;
+
+    b.with_inputs(|| {
+        let mut rng = SmallRng::seed_from_u64(SEED);
+        gen_ints(count, &mut rng)
+    })
+    .input_counter(|ints| ints.len())
+    .bench_refs(|ints| run_bench(ints, capacity));
+}
+
+fn main() {
+    divan::main();
+}

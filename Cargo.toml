@@ -19,7 +19,7 @@ rand = { version = "0.9" }
 fxhash = { version = "0.2", optional = true }
 
 [dev-dependencies]
-criterion = { version = "0.6" }
+divan = { package = "codspeed-divan-compat", version = "*" }
 rand = { version = "0.9", features = ["small_rng"] }
 fxhash = { version = "0.2" }
 
