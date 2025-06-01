@@ -22,7 +22,7 @@ pub fn hamlet(b: Bencher, capacity: usize) {
     let words = std::fs::read_to_string("hamlet.txt").unwrap();
 
     b.with_inputs(|| words.split_whitespace().collect::<Vec<_>>())
-        .input_counter(|words| words.len())
+        // .input_counter(|words| words.len())
         .bench_refs(|words| run_bench(words, capacity));
 }
 
@@ -44,7 +44,7 @@ pub fn ints(b: Bencher, (count, capacity): (u64, usize)) {
         let mut rng = SmallRng::seed_from_u64(SEED);
         gen_ints(count, &mut rng)
     })
-    .input_counter(|ints| ints.len())
+    // .input_counter(|ints| ints.len())
     .bench_refs(|ints| run_bench(ints, capacity));
 }
 
