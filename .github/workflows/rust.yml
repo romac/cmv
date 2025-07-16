@@ -60,4 +60,4 @@ jobs:
       - name: Install cargo-nextest
         uses: taiki-e/install-action@cargo-nextest
       - name: Run tests
-        run: cargo nextest --all-features --all-targets
+        run: cargo nextest run --all-features
