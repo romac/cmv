@@ -107,7 +107,7 @@ mod tests {
 
         println!("Exact count: {}", distinct.len());
         println!("  CMV count: {}", cmv.count());
-        println!("       Diff: {}", diff);
+        println!("       Diff: {diff}");
         println!("      Error: {:.2}%", error * 100.0);
 
         if error > max_error {
