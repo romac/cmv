@@ -89,8 +89,8 @@ fn prob_keep(rng: &mut dyn RngCore, round: usize) -> bool {
 mod tests {
     use super::*;
 
-    use rand::rngs::SmallRng;
     use rand::SeedableRng;
+    use rand::rngs::SmallRng;
 
     fn run<T: Eq + Hash>(capacity: usize, words: &[T], max_error: f64) {
         let distinct = words.iter().collect::<fxhash::FxHashSet<_>>();

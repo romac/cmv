@@ -1,9 +1,9 @@
 use std::hash::Hash;
 
 use cmv::Cmv;
-use divan::{bench, Bencher};
-use rand::rngs::SmallRng;
+use divan::{Bencher, bench};
 use rand::SeedableRng;
+use rand::rngs::SmallRng;
 
 fn run_bench<T>(words: &[T], capacity: usize) -> u128
 where
