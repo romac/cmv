@@ -4,32 +4,69 @@ use std::hash::{BuildHasher, Hash};
 use rand::{Rng, RngCore};
 
 #[cfg(feature = "fxhash")]
-type DefaultRandomState = fxhash::FxBuildHasher;
+pub type DefaultRandomState = fxhash::FxBuildHasher;
 
 #[cfg(not(feature = "fxhash"))]
-type DefaultRandomState = std::collections::hash_map::RandomState;
+pub type DefaultRandomState = std::collections::hash_map::RandomState;
 
+/// A Count-Min Sketch variant for approximating the count of distinct items in a stream.
+///
+/// See [_Distinct Elements in Streams: An Algorithm for the (Text) Book_](https://arxiv.org/pdf/2301.10191)
+/// by S. **C**hakraborty, K. **M**eel, N. V. **V**inodchandran for more details about the algorithm.
+///
+/// # Example
+///
+/// ```rust
+/// use rand::SeedableRng;
+/// use rand::rngs::SmallRng;
+///
+/// use cmv::Cmv;
+///
+/// fn estimate_distinct(words: &[&str]) -> u128 {
+///       let mut rng = SmallRng::seed_from_u64(0x123456789);
+///       let mut cmv = Cmv::with_capacity(128);
+///
+///       for &word in words.iter() {
+///           cmv.insert(word, &mut rng);
+///       }
+///
+///       cmv.count()
+/// }
+/// ```
 pub struct Cmv<T, S = DefaultRandomState> {
     capacity: usize,
     round: usize,
     set: HashSet<T, S>,
 }
 
+impl<T> Cmv<T, DefaultRandomState> {
+    /// Create a new estimator with the given capacity and default hasher.
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            capacity,
+            round: 0,
+            set: HashSet::<T, DefaultRandomState>::with_capacity_and_hasher(
+                capacity,
+                DefaultRandomState::default(),
+            ),
+        }
+    }
+}
+
 impl<T, S> Cmv<T, S>
 where
     S: BuildHasher,
 {
-    pub fn with_capacity(capacity: usize) -> Self
-    where
-        S: Default,
-    {
+    /// Create a new estimator with the given capacity and hasher.
+    pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> Self {
         Self {
             capacity,
             round: 0,
-            set: HashSet::<T, S>::with_capacity_and_hasher(capacity, S::default()),
+            set: HashSet::<T, S>::with_capacity_and_hasher(capacity, hasher),
         }
     }
 
+    /// Insert an item into the estimator.
     pub fn insert(&mut self, item: T, rng: &mut dyn RngCore)
     where
         T: Eq + Hash,
@@ -49,17 +86,25 @@ where
         }
     }
 
+    /// Return the current round.
     #[inline(always)]
     pub fn round(&self) -> usize {
         self.round
     }
 
+    /// Return the sample size, i.e., the number of distinct items currently in the estimator.
+    ///
+    /// # Note
+    /// This is not the same as the count of distinct items seen so far, as the estimator may have removed some items
+    /// due to the probabilistic nature of the algorithm.
+    ///
+    /// See [`count`](Cmv::count) for the approximate count of distinct items.
     #[inline(always)]
     pub fn sample_size(&self) -> usize {
         self.set.len()
     }
 
-    /// Return the approximate count of distinct items
+    /// Return the approximate count of all distinct items seen so far.
     #[inline(always)]
     pub fn count(&self) -> u128 {
         let len = self.sample_size() as u128;

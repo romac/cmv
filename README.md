@@ -14,11 +14,11 @@ use rand::rngs::SmallRng;
 
 use cmv::Cmv;
 
-fn estimate_distinct(words: &[str]) -> u128 {
+fn estimate_distinct(words: &[&str]) -> u128 {
       let mut rng = SmallRng::seed_from_u64(0x123456789);
-      let mut cmv = Cmv::with_capacity(capacity);
+      let mut cmv = Cmv::with_capacity(128);
 
-      for word in words {
+      for &word in words.iter() {
           cmv.insert(word, &mut rng);
       }
 
